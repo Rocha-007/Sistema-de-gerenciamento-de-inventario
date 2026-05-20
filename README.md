@@ -1,4 +1,3 @@
-# Sistema-de-gerenciamento-de-inventario
 # Sistema de Gerenciamento de Inventario
 
 Sistema desenvolvido para auxiliar no controle de produtos de um comercio, permitindo organizar entradas, saidas e consultas de itens em estoque por meio de uma API REST.
