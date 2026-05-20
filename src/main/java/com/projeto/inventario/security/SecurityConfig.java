@@ -74,10 +74,9 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider())
                 // Adiciona o filtro JWT antes do filtro de autenticação padrão
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // Permitir acesso ao H2 Console
-        http.headers().frameOptions().disable();
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Configuração correta para Spring Security 6
+                .headers(headers -> headers.frameOptions().disable());
 
         return http.build();
     }
