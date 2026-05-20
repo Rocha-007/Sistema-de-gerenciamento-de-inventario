@@ -1,5 +1,6 @@
 package com.projeto.inventario.service;
 
+import com.projeto.inventario.exception.ResourceNotFoundException;
 import com.projeto.inventario.model.Produto;
 import com.projeto.inventario.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,6 @@ public class ProdutoService {
 
     private final ProdutoRepository repository;
 
-    // Injeção via construtor
     public ProdutoService(ProdutoRepository repository) {
         this.repository = repository;
     }
@@ -23,23 +23,23 @@ public class ProdutoService {
 
     public Produto buscarPorId(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Produto nao encontrado com ID: " + id));
     }
 
     @Transactional
-    public Produto salvar(Produto p) {
-        return repository.save(p);
+    public Produto salvar(Produto produto) {
+        return repository.save(produto);
     }
 
     @Transactional
-    public Produto atualizar(Long id, Produto p) {
+    public Produto atualizar(Long id, Produto produto) {
         Produto existente = buscarPorId(id);
-        
-        existente.setNome(p.getNome());
-        existente.setDescricao(p.getDescricao());
-        existente.setPreco(p.getPreco());
-        existente.setQuantidadeEstoque(p.getQuantidadeEstoque());
-        
+
+        existente.setNome(produto.getNome());
+        existente.setDescricao(produto.getDescricao());
+        existente.setPreco(produto.getPreco());
+        existente.setQuantidadeEstoque(produto.getQuantidadeEstoque());
+
         return repository.save(existente);
     }
 
