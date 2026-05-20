@@ -1,0 +1,4 @@
+/home/ubuntu/inventario/src/main/java/com/projeto/inventario/model/Produto.java
+/home/ubuntu/inventario/src/main/java/com/projeto/inventario/repository/ProdutoRepository.java
+/home/ubuntu/inventario/src/main/java/com/projeto/inventario/service/ProdutoService.java
+/home/ubuntu/inventario/src/main/java/com/projeto/inventario/InventarioApplication.java
