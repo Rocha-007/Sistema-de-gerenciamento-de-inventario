@@ -76,7 +76,8 @@ public class AuthController {
                     .body(LoginResponse.builder()
                             .message("Erro na autenticação: credenciais inválidas!")
                             .build()
-                    );        }        } catch (Exception e) {
+                    );
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(LoginResponse.builder()
                             .message("Erro ao processar a autenticação!")
