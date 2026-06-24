@@ -1,5 +1,6 @@
 package com.projeto.inventario.controller;
 
+import com.projeto.inventario.dto.RelatorioVendasResponse;
 import com.projeto.inventario.dto.VendaRequest;
 import com.projeto.inventario.dto.VendaResponse;
 import com.projeto.inventario.service.VendaService;
@@ -35,6 +36,12 @@ public class VendaController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<VendaResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(vendaService.buscarPorId(id));
+    }
+
+    @GetMapping("/relatorio")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<RelatorioVendasResponse> gerarRelatorio() {
+        return ResponseEntity.ok(vendaService.gerarRelatorio());
     }
 
     @PostMapping

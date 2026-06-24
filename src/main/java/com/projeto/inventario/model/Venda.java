@@ -1,5 +1,6 @@
 package com.projeto.inventario.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "vendas")
+@Schema(description = "Registro de venda com baixa no estoque.")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

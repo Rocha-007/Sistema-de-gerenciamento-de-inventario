@@ -2,6 +2,7 @@ package com.projeto.inventario.ui;
 
 import com.projeto.inventario.client.InventarioApiClient;
 import com.projeto.inventario.client.InventarioApiClient.ApiClientException;
+import com.projeto.inventario.dto.RelatorioVendasResponse;
 import com.projeto.inventario.model.Produto;
 
 import javax.swing.BorderFactory;
@@ -93,6 +94,9 @@ public class ProdutoScreen extends JFrame {
         JButton atualizarButton = new JButton("Atualizar");
         atualizarButton.addActionListener(event -> carregarProdutos());
 
+        JButton relatorioButton = new JButton("Relatorio");
+        relatorioButton.addActionListener(event -> mostrarRelatorioVendas());
+
         JButton sairButton = new JButton("Sair");
         sairButton.addActionListener(event -> {
             apiClient.limparSessao();
@@ -102,6 +106,7 @@ public class ProdutoScreen extends JFrame {
 
         JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         acoes.add(atualizarButton);
+        acoes.add(relatorioButton);
         acoes.add(sairButton);
         painel.add(acoes, BorderLayout.EAST);
         return painel;
@@ -130,9 +135,13 @@ public class ProdutoScreen extends JFrame {
         JButton excluirButton = new JButton("Excluir");
         excluirButton.addActionListener(event -> excluirProduto());
 
+        JButton venderButton = new JButton("Vender");
+        venderButton.addActionListener(event -> venderProduto());
+
         JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         acoes.add(novoButton);
         acoes.add(excluirButton);
+        acoes.add(venderButton);
         acoes.add(salvarButton);
 
         painel.add(campos, BorderLayout.CENTER);
@@ -201,6 +210,65 @@ public class ProdutoScreen extends JFrame {
                     carregarProdutos();
                 }
         );
+    }
+
+    private void venderProduto() {
+        if (produtoSelecionadoId == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um produto para vender.");
+            return;
+        }
+
+        String quantidadeTexto = JOptionPane.showInputDialog(this, "Quantidade vendida:", "Registrar venda", JOptionPane.QUESTION_MESSAGE);
+        if (quantidadeTexto == null) {
+            return;
+        }
+
+        try {
+            int quantidade = Integer.parseInt(quantidadeTexto.trim());
+            if (quantidade <= 0) {
+                throw new IllegalArgumentException("A quantidade vendida deve ser maior que zero.");
+            }
+
+            Long id = produtoSelecionadoId;
+            statusLabel.setText("Registrando venda...");
+            executarAsync(
+                    () -> apiClient.registrarVenda(id, quantidade),
+                    venda -> {
+                        limparFormulario();
+                        carregarProdutos();
+                        JOptionPane.showMessageDialog(this, "Venda registrada com sucesso.");
+                    }
+            );
+        } catch (NumberFormatException exception) {
+            JOptionPane.showMessageDialog(this, "Informe uma quantidade valida.", "Dados invalidos", JOptionPane.WARNING_MESSAGE);
+        } catch (IllegalArgumentException exception) {
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "Dados invalidos", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void mostrarRelatorioVendas() {
+        statusLabel.setText("Carregando relatorio de vendas...");
+        executarAsync(
+                apiClient::obterRelatorioVendas,
+                relatorio -> {
+                    statusLabel.setText("Relatorio de vendas carregado");
+                    exibirResumoRelatorio(relatorio);
+                }
+        );
+    }
+
+    private void exibirResumoRelatorio(RelatorioVendasResponse relatorio) {
+        String mensagem = """
+                Total de vendas: %d
+                Itens vendidos: %d
+                Faturamento total: %s
+                """.formatted(
+                relatorio.getTotalVendas(),
+                relatorio.getTotalItensVendidos(),
+                moedaFormat.format(relatorio.getFaturamentoTotal())
+        );
+
+        JOptionPane.showMessageDialog(this, mensagem, "Relatorio de Vendas", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private Produto lerFormulario() {
