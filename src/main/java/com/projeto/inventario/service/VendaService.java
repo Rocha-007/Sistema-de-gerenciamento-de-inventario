@@ -2,6 +2,8 @@ package com.projeto.inventario.service;
 
 import com.projeto.inventario.dto.RelatorioVendasResponse;
 import com.projeto.inventario.dto.VendaRequest;
+import com.projeto.inventario.dto.VendaResponse;
+import com.projeto.inventario.exception.ResourceNotFoundException;
 import com.projeto.inventario.model.Produto;
 import com.projeto.inventario.model.Venda;
 import com.projeto.inventario.repository.ProdutoRepository;
@@ -10,50 +12,36 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class VendaService {
 
     private final VendaRepository vendaRepository;
-    private final ProdutoService produtoService;
     private final ProdutoRepository produtoRepository;
 
-    public VendaService(VendaRepository vendaRepository, ProdutoService produtoService, ProdutoRepository produtoRepository) {
+    public VendaService(VendaRepository vendaRepository, ProdutoRepository produtoRepository) {
         this.vendaRepository = vendaRepository;
-        this.produtoService = produtoService;
         this.produtoRepository = produtoRepository;
     }
 
-    public List<Venda> listarTodas() {
-        return vendaRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<VendaResponse> listarTodas() {
+        return vendaRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    @Transactional
-    public Venda registrarVenda(VendaRequest request) {
-        validarRequest(request);
+    @Transactional(readOnly = true)
+    public VendaResponse buscarPorId(Long id) {
+        Venda venda = vendaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda nao encontrada com ID: " + id));
 
-        Produto produto = produtoService.buscarPorId(request.getProdutoId());
-        int quantidadeVendida = request.getQuantidade();
-
-        if (produto.getQuantidadeEstoque() < quantidadeVendida) {
-            throw new IllegalArgumentException("Estoque insuficiente para realizar a venda.");
-        }
-
-        produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() - quantidadeVendida);
-        produtoRepository.save(produto);
-
-        Venda venda = new Venda();
-        venda.setProduto(produto);
-        venda.setQuantidade(quantidadeVendida);
-        venda.setValorUnitario(produto.getPreco());
-        venda.setValorTotal(produto.getPreco().multiply(BigDecimal.valueOf(quantidadeVendida)));
-        venda.setDataVenda(LocalDateTime.now());
-
-        return vendaRepository.save(venda);
+        return toResponse(venda);
     }
 
+    @Transactional(readOnly = true)
     public RelatorioVendasResponse gerarRelatorio() {
         List<Venda> vendas = vendaRepository.findAll();
         int totalItens = vendas.stream()
@@ -66,12 +54,60 @@ public class VendaService {
         return new RelatorioVendasResponse(vendas.size(), totalItens, faturamento);
     }
 
+    @Transactional
+    public VendaResponse registrarVenda(VendaRequest request) {
+        validarRequest(request);
+
+        Produto produto = produtoRepository.findById(request.getProdutoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto nao encontrado com ID: " + request.getProdutoId()));
+
+        Integer estoqueAtual = produto.getQuantidadeEstoque();
+        if (estoqueAtual == null || estoqueAtual < request.getQuantidade()) {
+            throw new IllegalStateException("Estoque insuficiente para o produto: " + produto.getNome());
+        }
+
+        BigDecimal precoUnitario = produto.getPreco();
+        BigDecimal valorTotal = precoUnitario.multiply(BigDecimal.valueOf(request.getQuantidade()));
+
+        produto.setQuantidadeEstoque(estoqueAtual - request.getQuantidade());
+        produtoRepository.save(produto);
+
+        Venda venda = Venda.builder()
+                .produto(produto)
+                .quantidade(request.getQuantidade())
+                .precoUnitario(precoUnitario)
+                .valorTotal(valorTotal)
+                .build();
+
+        Venda vendaSalva = vendaRepository.save(venda);
+        return toResponse(vendaSalva);
+    }
+
     private void validarRequest(VendaRequest request) {
-        if (request == null || request.getProdutoId() == null) {
-            throw new IllegalArgumentException("Informe o produto da venda.");
+        if (request == null) {
+            throw new IllegalArgumentException("Dados da venda sao obrigatorios.");
         }
+
+        if (request.getProdutoId() == null) {
+            throw new IllegalArgumentException("O produtoId e obrigatorio.");
+        }
+
         if (request.getQuantidade() == null || request.getQuantidade() <= 0) {
-            throw new IllegalArgumentException("A quantidade vendida deve ser maior que zero.");
+            throw new IllegalArgumentException("A quantidade da venda deve ser maior que zero.");
         }
+    }
+
+    private VendaResponse toResponse(Venda venda) {
+        Produto produto = venda.getProduto();
+
+        return VendaResponse.builder()
+                .id(venda.getId())
+                .produtoId(produto.getId())
+                .nomeProduto(produto.getNome())
+                .quantidade(venda.getQuantidade())
+                .precoUnitario(venda.getPrecoUnitario())
+                .valorTotal(venda.getValorTotal())
+                .dataVenda(venda.getDataVenda())
+                .build();
     }
 }

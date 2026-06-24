@@ -59,9 +59,9 @@ class VendaControllerTest {
         usuarioRepository.deleteAll();
 
         Usuario usuario = Usuario.builder()
-                .username("eduardo")
+                .username("lucas")
                 .password(passwordEncoder.encode("123456"))
-                .email("eduardo@email.com")
+                .email("lucas@email.com")
                 .ativo(true)
                 .build();
 
@@ -70,31 +70,41 @@ class VendaControllerTest {
     }
 
     @Test
-    void deveRegistrarVendaEBaixarEstoque() throws Exception {
-        Produto produto = salvarProduto("Teclado", "Teclado USB", "100.00", 10);
+    void deveBloquearVendasSemTokenJwt() throws Exception {
+        mockMvc.perform(get("/api/vendas"))
+                .andExpect(status().isUnauthorized());
+    }
 
-        VendaRequest request = new VendaRequest();
-        request.setProdutoId(produto.getId());
-        request.setQuantidade(3);
+    @Test
+    void deveRegistrarVendaEBaixarEstoqueQuandoTokenJwtForEnviado() throws Exception {
+        Produto produto = salvarProduto("Mouse gamer", "Mouse USB", "129.90", 10);
+
+        VendaRequest request = VendaRequest.builder()
+                .produtoId(produto.getId())
+                .quantidade(3)
+                .build();
 
         mockMvc.perform(post("/api/vendas")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.produto.id", is(produto.getId().intValue())))
+                .andExpect(jsonPath("$.produtoId", is(produto.getId().intValue())))
+                .andExpect(jsonPath("$.nomeProduto", is("Mouse gamer")))
                 .andExpect(jsonPath("$.quantidade", is(3)))
-                .andExpect(jsonPath("$.valorTotal", is(300.00)));
+                .andExpect(jsonPath("$.valorTotal", is(389.70)));
 
         mockMvc.perform(get("/api/produtos/" + produto.getId())
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.quantidadeEstoque", is(7)));
+                .andExpect(jsonPath("$.quantidadeEstoque", is(7)))
+                .andExpect(jsonPath("$.id", is(produto.getId().intValue())));
     }
 
     @Test
     void deveGerarRelatorioDeVendas() throws Exception {
-        Produto produto = salvarProduto("Mouse", "Mouse sem fio", "50.00", 8);
+        Produto produto = salvarProduto("Teclado", "Teclado USB", "100.00", 10);
+
         registrarVenda(produto, 2);
         registrarVenda(produto, 1);
 
@@ -103,29 +113,25 @@ class VendaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalVendas", is(2)))
                 .andExpect(jsonPath("$.totalItensVendidos", is(3)))
-                .andExpect(jsonPath("$.faturamentoTotal", is(150.00)));
+                .andExpect(jsonPath("$.faturamentoTotal", is(300.00)));
     }
 
     @Test
-    void deveBloquearVendaComEstoqueInsuficiente() throws Exception {
+    void deveRetornarConflitoQuandoEstoqueForInsuficiente() throws Exception {
         Produto produto = salvarProduto("Monitor", "Monitor LED", "900.00", 1);
 
-        VendaRequest request = new VendaRequest();
-        request.setProdutoId(produto.getId());
-        request.setQuantidade(2);
+        VendaRequest request = VendaRequest.builder()
+                .produtoId(produto.getId())
+                .quantidade(2)
+                .build();
 
         mockMvc.perform(post("/api/vendas")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", is("Estoque insuficiente para realizar a venda.")));
-    }
-
-    @Test
-    void deveBloquearVendasSemTokenJwt() throws Exception {
-        mockMvc.perform(get("/api/vendas"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status", is(409)))
+                .andExpect(jsonPath("$.message", is("Estoque insuficiente para o produto: Monitor")));
     }
 
     private Produto salvarProduto(String nome, String descricao, String preco, int quantidade) {
@@ -140,9 +146,10 @@ class VendaControllerTest {
     }
 
     private void registrarVenda(Produto produto, int quantidade) throws Exception {
-        VendaRequest request = new VendaRequest();
-        request.setProdutoId(produto.getId());
-        request.setQuantidade(quantidade);
+        VendaRequest request = VendaRequest.builder()
+                .produtoId(produto.getId())
+                .quantidade(quantidade)
+                .build();
 
         mockMvc.perform(post("/api/vendas")
                         .header("Authorization", "Bearer " + token)

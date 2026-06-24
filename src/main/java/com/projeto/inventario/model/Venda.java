@@ -9,7 +9,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,21 +22,25 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "vendas")
 @Schema(description = "Registro de venda com baixa no estoque.")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Venda {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
     @Column(nullable = false)
     private Integer quantidade;
 
-    @Column(name = "valor_unitario", nullable = false)
-    private BigDecimal valorUnitario;
+    @Column(name = "preco_unitario", nullable = false)
+    private BigDecimal precoUnitario;
 
     @Column(name = "valor_total", nullable = false)
     private BigDecimal valorTotal;
@@ -39,51 +48,10 @@ public class Venda {
     @Column(name = "data_venda", nullable = false)
     private LocalDateTime dataVenda;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Produto getProduto() {
-        return produto;
-    }
-
-    public void setProduto(Produto produto) {
-        this.produto = produto;
-    }
-
-    public Integer getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(Integer quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    public BigDecimal getValorUnitario() {
-        return valorUnitario;
-    }
-
-    public void setValorUnitario(BigDecimal valorUnitario) {
-        this.valorUnitario = valorUnitario;
-    }
-
-    public BigDecimal getValorTotal() {
-        return valorTotal;
-    }
-
-    public void setValorTotal(BigDecimal valorTotal) {
-        this.valorTotal = valorTotal;
-    }
-
-    public LocalDateTime getDataVenda() {
-        return dataVenda;
-    }
-
-    public void setDataVenda(LocalDateTime dataVenda) {
-        this.dataVenda = dataVenda;
+    @PrePersist
+    public void prePersist() {
+        if (dataVenda == null) {
+            dataVenda = LocalDateTime.now();
+        }
     }
 }

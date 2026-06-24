@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projeto.inventario.dto.RelatorioVendasResponse;
 import com.projeto.inventario.dto.VendaRequest;
+import com.projeto.inventario.dto.VendaResponse;
 import com.projeto.inventario.model.Produto;
-import com.projeto.inventario.model.Venda;
 
 import java.io.IOException;
 import java.net.URI;
@@ -65,14 +65,15 @@ public class InventarioApiClient {
         send("/api/produtos/" + id, "DELETE", null, Void.class, true);
     }
 
-    public Venda registrarVenda(Long produtoId, Integer quantidade) {
-        VendaRequest request = new VendaRequest();
-        request.setProdutoId(produtoId);
-        request.setQuantidade(quantidade);
-        return send("/api/vendas", "POST", request, Venda.class, true);
+    public VendaResponse registrarVenda(Long produtoId, Integer quantidade) {
+        VendaRequest request = VendaRequest.builder()
+                .produtoId(produtoId)
+                .quantidade(quantidade)
+                .build();
+        return send("/api/vendas", "POST", request, VendaResponse.class, true);
     }
 
-    public List<Venda> listarVendas() {
+    public List<VendaResponse> listarVendas() {
         return send("/api/vendas", "GET", null, new TypeReference<>() {}, true);
     }
 
