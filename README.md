@@ -163,15 +163,19 @@ Isso evita que a API retorne uma mensagem tecnica ou quebre a resposta esperada 
 
 ## Banco de Dados
 
-Por padrao, o projeto esta configurado para usar H2 em memoria durante o desenvolvimento:
+Por padrao, o projeto usa um arquivo H2 local. Os dados permanecem salvos
+mesmo depois que a aplicacao e encerrada:
 
-spring.datasource.url=jdbc:h2:mem:inventario_db
+spring.datasource.url=jdbc:h2:file:./data/inventario_db
 spring.datasource.username=sa
 spring.datasource.password=
 
 O console do H2 pode ser acessado em:
 
 http://localhost:8080/h2-console
+
+No console, use `jdbc:h2:file:./data/inventario_db` como JDBC URL, usuario
+`sa` e deixe a senha em branco.
 
 Tambem existe configuracao comentada para PostgreSQL no arquivo application.properties.
 
@@ -189,9 +193,22 @@ cd Sistema-de-gerenciamento-de-inventario
 
 mvn spring-boot:run
 
-4. Acesse a API em:
+Esse comando inicia a API e abre a tela de login Swing. Em ambientes sem
+interface grafica, somente a API sera iniciada.
+
+4. A API fica disponivel em:
 
 http://localhost:8080
+
+## Como Executar a Interface Swing
+
+Normalmente a interface ja e aberta pelo comando `mvn spring-boot:run`.
+Tambem e possivel executar `LoginScreen` diretamente pela IDE, desde que o
+backend esteja rodando em `http://localhost:8080`.
+
+A interface permite criar uma conta, entrar, listar, cadastrar, atualizar e
+excluir produtos. Todas as operacoes sao enviadas para a API REST e persistidas
+no banco H2; a interface nao mantem registros simulados.
 
 ## Como Executar os Testes
 
