@@ -25,6 +25,7 @@ O projeto utiliza Spring Boot e segue uma arquitetura em camadas, separando cont
 - Login com geracao de token JWT
 - Protecao de rotas com Spring Security
 - CRUD de produtos
+- Registro de vendas com baixa automatica no estoque
 - Tratamento global de erros da API
 - Testes automatizados basicos para seguranca e cadastro de produtos
 
@@ -33,26 +34,32 @@ O projeto utiliza Spring Boot e segue uma arquitetura em camadas, separando cont
 src/main/java/com/projeto/inventario
 |-- controller
 |   |-- AuthController.java
-|   `-- ProdutoController.java
+|   |-- ProdutoController.java
+|   `-- VendaController.java
 |-- dto
 |   |-- LoginRequest.java
-|   `-- LoginResponse.java
+|   |-- LoginResponse.java
+|   |-- VendaRequest.java
+|   `-- VendaResponse.java
 |-- exception
 |   |-- ApiErrorResponse.java
 |   |-- GlobalExceptionHandler.java
 |   `-- ResourceNotFoundException.java
 |-- model
 |   |-- Produto.java
-|   `-- Usuario.java
+|   |-- Usuario.java
+|   `-- Venda.java
 |-- repository
 |   |-- ProdutoRepository.java
-|   `-- UsuarioRepository.java
+|   |-- UsuarioRepository.java
+|   `-- VendaRepository.java
 |-- security
 |   |-- CustomUserDetailsService.java
 |   |-- JwtAuthenticationFilter.java
 |   `-- SecurityConfig.java
 |-- service
-|   `-- ProdutoService.java
+|   |-- ProdutoService.java
+|   `-- VendaService.java
 |-- util
 |   `-- JwtTokenUtil.java
 `-- InventarioApplication.java
@@ -70,6 +77,7 @@ Rotas publicas:
 Rotas protegidas:
 
 - Todos os endpoints de CRUD, como /api/produtos
+- Todos os endpoints de vendas, como /api/vendas
 
 Para acessar uma rota protegida, o cliente deve enviar o token JWT no cabecalho da requisicao:
 
@@ -145,6 +153,46 @@ PUT /api/produtos/{id}
 
 DELETE /api/produtos/{id}
 
+## Endpoints de Vendas
+
+Todos os endpoints abaixo exigem token JWT.
+
+### Listar Vendas
+
+GET /api/vendas
+
+### Buscar Venda por ID
+
+GET /api/vendas/{id}
+
+### Registrar Venda
+
+POST /api/vendas
+
+Exemplo de corpo da requisicao:
+
+{
+  "produtoId": 1,
+  "quantidade": 2
+}
+
+Ao registrar uma venda, a API valida se existe estoque suficiente para o produto.
+Se houver estoque, a venda e salva e a quantidade vendida e baixada automaticamente do estoque do produto.
+
+Exemplo de resposta:
+
+{
+  "id": 1,
+  "produtoId": 1,
+  "nomeProduto": "Mouse gamer",
+  "quantidade": 2,
+  "precoUnitario": 129.90,
+  "valorTotal": 259.80,
+  "dataVenda": "2026-06-23T20:00:00"
+}
+
+Caso nao exista estoque suficiente, a API retorna 409 Conflict com uma mensagem explicando o problema.
+
 ## Tratamento de Erros
 
 O projeto possui um handler global com @ControllerAdvice, responsavel por capturar erros comuns e retornar uma resposta JSON padronizada.
@@ -206,6 +254,10 @@ Atualmente os testes validam:
 - Bloqueio do CRUD de produtos sem token JWT, esperando 401 Unauthorized
 - Criacao de produto com token JWT valido, esperando 201 Created
 - Retorno 404 Not Found com JSON padronizado ao buscar produto inexistente
+- Bloqueio dos endpoints de vendas sem token JWT
+- Registro de venda com token JWT valido
+- Baixa automatica do estoque apos uma venda
+- Retorno 409 Conflict quando o estoque for insuficiente
 
 ## Atualizacoes Recentes
 
@@ -218,6 +270,9 @@ Foram adicionadas as seguintes melhorias ao projeto:
 - Handler global de excecoes com @ControllerAdvice
 - Resposta padronizada para erro 404 Not Found
 - Testes basicos com JUnit e MockMvc
+- API de vendas protegida por JWT
+- Controle de estoque com baixa automatica ao registrar venda
+- Tratamento de erro para estoque insuficiente
 
 ## Autores
 

@@ -6,6 +6,7 @@ import com.projeto.inventario.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -28,11 +29,13 @@ public class ProdutoService {
 
     @Transactional
     public Produto salvar(Produto produto) {
+        validarProduto(produto);
         return repository.save(produto);
     }
 
     @Transactional
     public Produto atualizar(Long id, Produto produto) {
+        validarProduto(produto);
         Produto existente = buscarPorId(id);
 
         existente.setNome(produto.getNome());
@@ -47,5 +50,23 @@ public class ProdutoService {
     public void deletar(Long id) {
         Produto existente = buscarPorId(id);
         repository.delete(existente);
+    }
+
+    private void validarProduto(Produto produto) {
+        if (produto == null) {
+            throw new IllegalArgumentException("Dados do produto sao obrigatorios.");
+        }
+
+        if (produto.getNome() == null || produto.getNome().trim().isEmpty()) {
+            throw new IllegalArgumentException("O nome do produto e obrigatorio.");
+        }
+
+        if (produto.getPreco() == null || produto.getPreco().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O preco do produto deve ser maior que zero.");
+        }
+
+        if (produto.getQuantidadeEstoque() == null || produto.getQuantidadeEstoque() < 0) {
+            throw new IllegalArgumentException("A quantidade em estoque nao pode ser negativa.");
+        }
     }
 }
