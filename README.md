@@ -179,6 +179,21 @@ No console, use `jdbc:h2:file:./data/inventario_db` como JDBC URL, usuario
 
 Tambem existe configuracao comentada para PostgreSQL no arquivo application.properties.
 
+## Documentacao da API
+
+Com a aplicacao em execucao, a documentacao interativa esta disponivel em:
+
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- Especificacao OpenAPI em JSON: http://localhost:8080/v3/api-docs
+
+Para testar os endpoints de produtos pelo Swagger:
+
+1. Execute `POST /api/auth/register` ou `POST /api/auth/login`.
+2. Copie o valor do campo `token` retornado.
+3. Clique em **Authorize** no topo da pagina.
+4. Informe somente o token, sem adicionar o prefixo `Bearer`.
+5. Execute as operacoes de produtos desejadas.
+
 ## Como Executar o Projeto
 
 1. Clone o repositorio:

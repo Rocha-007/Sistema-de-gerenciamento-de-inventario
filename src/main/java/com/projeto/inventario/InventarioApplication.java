@@ -13,7 +13,9 @@ import java.awt.GraphicsEnvironment;
 public class InventarioApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(InventarioApplication.class, args);
+		SpringApplication application = new SpringApplication(InventarioApplication.class);
+		application.setHeadless(false);
+		application.run(args);
 
 		if (!GraphicsEnvironment.isHeadless()) {
 			SwingUtilities.invokeLater(() -> new LoginScreen().setVisible(true));
