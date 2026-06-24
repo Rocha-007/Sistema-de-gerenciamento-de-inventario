@@ -5,6 +5,13 @@ import com.projeto.inventario.dto.LoginResponse;
 import com.projeto.inventario.model.Usuario;
 import com.projeto.inventario.repository.UsuarioRepository;
 import com.projeto.inventario.util.JwtTokenUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +30,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Autenticacao", description = "Registro de usuarios e emissao de tokens JWT.")
 public class AuthController {
 
     @Autowired
@@ -46,6 +54,32 @@ public class AuthController {
      * @return Token JWT e informações do usuário
      */
     @PostMapping("/login")
+    @Operation(
+            summary = "Autenticar usuario",
+            description = "Valida usuario e senha e retorna um token JWT com validade de 24 horas."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Autenticacao realizada.",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Credenciais invalidas.",
+                    content = @Content(
+                            schema = @Schema(implementation = LoginResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {"token":null,"username":null,"message":"Erro na autenticacao: credenciais invalidas!"}
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno ao processar a autenticacao.",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))
+            )
+    })
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
             // Autentica o usuário com as credenciais fornecidas
@@ -93,6 +127,28 @@ public class AuthController {
      * @return Usuário criado e token de autenticação
      */
     @PostMapping("/register")
+    @Operation(
+            summary = "Registrar usuario",
+            description = "Cria um usuario, criptografa sua senha com BCrypt e retorna um token JWT."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Usuario registrado.",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "JSON ausente ou invalido."),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Username ou e-mail ja cadastrado.",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno ao registrar o usuario.",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))
+            )
+    })
     public ResponseEntity<?> register(@RequestBody Usuario usuario) {
         try {
             // Verifica se o usuário já existe
