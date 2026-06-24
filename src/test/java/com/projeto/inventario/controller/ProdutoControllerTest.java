@@ -5,6 +5,7 @@ import com.projeto.inventario.model.Produto;
 import com.projeto.inventario.model.Usuario;
 import com.projeto.inventario.repository.ProdutoRepository;
 import com.projeto.inventario.repository.UsuarioRepository;
+import com.projeto.inventario.repository.VendaRepository;
 import com.projeto.inventario.util.JwtTokenUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,9 @@ class ProdutoControllerTest {
     private ProdutoRepository produtoRepository;
 
     @Autowired
+    private VendaRepository vendaRepository;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -49,6 +53,7 @@ class ProdutoControllerTest {
 
     @BeforeEach
     void setUp() {
+        vendaRepository.deleteAll();
         produtoRepository.deleteAll();
         usuarioRepository.deleteAll();
 

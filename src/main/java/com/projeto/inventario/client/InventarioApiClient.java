@@ -3,7 +3,10 @@ package com.projeto.inventario.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projeto.inventario.dto.RelatorioVendasResponse;
+import com.projeto.inventario.dto.VendaRequest;
 import com.projeto.inventario.model.Produto;
+import com.projeto.inventario.model.Venda;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +31,7 @@ public class InventarioApiClient {
     public InventarioApiClient(String baseUrl) {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.findAndRegisterModules();
         this.baseUrl = baseUrl;
     }
 
@@ -59,6 +63,21 @@ public class InventarioApiClient {
 
     public void deletarProduto(Long id) {
         send("/api/produtos/" + id, "DELETE", null, Void.class, true);
+    }
+
+    public Venda registrarVenda(Long produtoId, Integer quantidade) {
+        VendaRequest request = new VendaRequest();
+        request.setProdutoId(produtoId);
+        request.setQuantidade(quantidade);
+        return send("/api/vendas", "POST", request, Venda.class, true);
+    }
+
+    public List<Venda> listarVendas() {
+        return send("/api/vendas", "GET", null, new TypeReference<>() {}, true);
+    }
+
+    public RelatorioVendasResponse obterRelatorioVendas() {
+        return send("/api/vendas/relatorio", "GET", null, RelatorioVendasResponse.class, true);
     }
 
     public boolean isAutenticado() {

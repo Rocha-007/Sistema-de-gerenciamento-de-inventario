@@ -25,6 +25,8 @@ O projeto utiliza Spring Boot e segue uma arquitetura em camadas, separando cont
 - Login com geracao de token JWT
 - Protecao de rotas com Spring Security
 - CRUD de produtos
+- Registro de vendas com baixa automatica no estoque
+- Relatorio de vendas com total de vendas, itens vendidos e faturamento
 - Tratamento global de erros da API
 - Testes automatizados basicos para seguranca e cadastro de produtos
 
@@ -43,9 +45,11 @@ src/main/java/com/projeto/inventario
 |   `-- ResourceNotFoundException.java
 |-- model
 |   |-- Produto.java
+|   |-- Venda.java
 |   `-- Usuario.java
 |-- repository
 |   |-- ProdutoRepository.java
+|   |-- VendaRepository.java
 |   `-- UsuarioRepository.java
 |-- security
 |   |-- CustomUserDetailsService.java
@@ -145,6 +149,43 @@ PUT /api/produtos/{id}
 
 DELETE /api/produtos/{id}
 
+## Endpoints de Vendas e Relatorios
+
+Todos os endpoints abaixo exigem token JWT.
+
+### Registrar Venda
+
+POST /api/vendas
+
+Ao registrar uma venda, o sistema valida se existe estoque suficiente e reduz
+automaticamente a quantidade do produto vendido.
+
+Exemplo de corpo da requisicao:
+
+{
+  "produtoId": 1,
+  "quantidade": 2
+}
+
+### Listar Vendas
+
+GET /api/vendas
+
+### Relatorio de Vendas
+
+GET /api/vendas/relatorio
+
+Exemplo de resposta:
+
+{
+  "totalVendas": 2,
+  "totalItensVendidos": 5,
+  "faturamentoTotal": 499.50
+}
+
+Caso a venda solicite uma quantidade maior que o estoque disponivel, a API
+retorna 400 Bad Request com uma mensagem explicando o problema.
+
 ## Tratamento de Erros
 
 O projeto possui um handler global com @ControllerAdvice, responsavel por capturar erros comuns e retornar uma resposta JSON padronizada.
@@ -222,8 +263,9 @@ Tambem e possivel executar `LoginScreen` diretamente pela IDE, desde que o
 backend esteja rodando em `http://localhost:8080`.
 
 A interface permite criar uma conta, entrar, listar, cadastrar, atualizar e
-excluir produtos. Todas as operacoes sao enviadas para a API REST e persistidas
-no banco H2; a interface nao mantem registros simulados.
+excluir produtos, registrar vendas de um produto selecionado e consultar o
+relatorio de vendas. Todas as operacoes sao enviadas para a API REST e
+persistidas no banco H2; a interface nao mantem registros simulados.
 
 ## Como Executar os Testes
 
@@ -238,6 +280,10 @@ Atualmente os testes validam:
 - Bloqueio do CRUD de produtos sem token JWT, esperando 401 Unauthorized
 - Criacao de produto com token JWT valido, esperando 201 Created
 - Retorno 404 Not Found com JSON padronizado ao buscar produto inexistente
+- Registro de venda com token JWT valido
+- Baixa automatica no estoque depois da venda
+- Relatorio de vendas com quantidade vendida e faturamento
+- Bloqueio de venda quando o estoque e insuficiente
 
 ## Atualizacoes Recentes
 
@@ -250,6 +296,9 @@ Foram adicionadas as seguintes melhorias ao projeto:
 - Handler global de excecoes com @ControllerAdvice
 - Resposta padronizada para erro 404 Not Found
 - Testes basicos com JUnit e MockMvc
+- Endpoints de vendas e relatorio
+- Integracao da tela Swing com registro de vendas e resumo de relatorio
+- Testes de integracao para fluxo de venda e baixa no estoque
 
 ## Autores
 
