@@ -1,8 +1,10 @@
 package com.projeto.inventario.ui;
 
-import com.projeto.inventario.client.InventarioApiClient;
-import com.projeto.inventario.client.InventarioApiClient.ApiClientException;
-import com.projeto.inventario.client.InventarioApiClient.AuthResult;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -15,11 +17,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+
+import com.projeto.inventario.client.InventarioApiClient;
+import com.projeto.inventario.client.InventarioApiClient.ApiClientException;
+import com.projeto.inventario.client.InventarioApiClient.AuthResult;
 
 public class LoginScreen extends JFrame {
 
@@ -49,7 +50,7 @@ public class LoginScreen extends JFrame {
         JButton entrarButton = new JButton("Entrar");
 
         JPanel painel = criarFormulario();
-        adicionarCampo(painel, "Usuario", usernameField, 0);
+        adicionarCampo(painel, "Usuário", usernameField, 0);
         adicionarCampo(painel, "Senha", passwordField, 1);
         adicionarBotao(painel, entrarButton, 2);
 
@@ -71,7 +72,7 @@ public class LoginScreen extends JFrame {
         JButton registrarButton = new JButton("Criar conta");
 
         JPanel painel = criarFormulario();
-        adicionarCampo(painel, "Usuario", usernameField, 0);
+        adicionarCampo(painel, "Usuário", usernameField, 0);
         adicionarCampo(painel, "E-mail", emailField, 1);
         adicionarCampo(painel, "Senha", passwordField, 2);
         adicionarBotao(painel, registrarButton, 3);
@@ -151,7 +152,7 @@ public class LoginScreen extends JFrame {
         Throwable cause = exception.getCause();
         String message = cause instanceof ApiClientException
                 ? cause.getMessage()
-                : "Nao foi possivel concluir a autenticacao.";
+                : "Não foi possível concluir a autenticação.";
 
         JOptionPane.showMessageDialog(this, message, "Erro", JOptionPane.ERROR_MESSAGE);
     }

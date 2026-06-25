@@ -1,8 +1,13 @@
 package com.projeto.inventario.ui;
 
-import com.projeto.inventario.client.InventarioApiClient;
-import com.projeto.inventario.client.InventarioApiClient.ApiClientException;
-import com.projeto.inventario.model.Produto;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -17,14 +22,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.Locale;
+
+import com.projeto.inventario.client.InventarioApiClient;
+import com.projeto.inventario.client.InventarioApiClient.ApiClientException;
+import com.projeto.inventario.model.Produto;
 
 public class ProdutoScreen extends JFrame {
 
@@ -44,7 +45,7 @@ public class ProdutoScreen extends JFrame {
         this.apiClient = apiClient;
         this.moedaFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
-        setTitle("Inventario - " + username);
+        setTitle("Inventário - " + username);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(860, 560));
         setLocationRelativeTo(null);
@@ -56,7 +57,7 @@ public class ProdutoScreen extends JFrame {
         statusLabel = new JLabel("Conectado como " + username);
 
         produtosModel = new DefaultTableModel(
-                new String[]{"ID", "Nome", "Descricao", "Preco", "Estoque"},
+                new String[]{"ID", "Nome", "Descrição", "Preço", "Estoque"},
                 0
         ) {
             @Override
@@ -113,8 +114,8 @@ public class ProdutoScreen extends JFrame {
 
         JPanel campos = new JPanel(new GridLayout(2, 4, 8, 6));
         campos.add(new JLabel("Nome"));
-        campos.add(new JLabel("Descricao"));
-        campos.add(new JLabel("Preco"));
+        campos.add(new JLabel("Descrição"));
+        campos.add(new JLabel("Preço"));
         campos.add(new JLabel("Quantidade"));
         campos.add(nomeField);
         campos.add(descricaoField);
@@ -168,7 +169,7 @@ public class ProdutoScreen extends JFrame {
                     }
             );
         } catch (IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(this, exception.getMessage(), "Dados invalidos", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "Dados inválidos", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -181,7 +182,7 @@ public class ProdutoScreen extends JFrame {
         int confirmacao = JOptionPane.showConfirmDialog(
                 this,
                 "Deseja excluir o produto selecionado?",
-                "Confirmar exclusao",
+                "Confirmar exclusão",
                 JOptionPane.YES_NO_OPTION
         );
 
@@ -216,10 +217,10 @@ public class ProdutoScreen extends JFrame {
             int quantidade = Integer.parseInt(quantidadeField.getText().trim());
 
             if (preco.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("O preco deve ser maior que zero.");
+                throw new IllegalArgumentException("O preço deve ser maior que zero.");
             }
             if (quantidade < 0) {
-                throw new IllegalArgumentException("A quantidade nao pode ser negativa.");
+                throw new IllegalArgumentException("A quantidade não pode ser negativa.");
             }
 
             return Produto.builder()
@@ -229,7 +230,7 @@ public class ProdutoScreen extends JFrame {
                     .quantidadeEstoque(quantidade)
                     .build();
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe preco e quantidade validos.");
+            throw new IllegalArgumentException("Informe preço e quantidade válidos.");
         }
     }
 
@@ -292,9 +293,9 @@ public class ProdutoScreen extends JFrame {
         Throwable cause = exception.getCause();
         String message = cause instanceof ApiClientException
                 ? cause.getMessage()
-                : "Nao foi possivel concluir a operacao.";
+                : "Não foi possível concluir a operação.";
 
-        statusLabel.setText("Falha na comunicacao com a API");
+        statusLabel.setText("Falha na comunicação com a API");
         JOptionPane.showMessageDialog(this, message, "Erro", JOptionPane.ERROR_MESSAGE);
     }
 
