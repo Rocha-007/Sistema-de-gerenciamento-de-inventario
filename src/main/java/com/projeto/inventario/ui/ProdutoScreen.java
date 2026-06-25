@@ -1,5 +1,14 @@
 package com.projeto.inventario.ui;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
+
 import com.projeto.inventario.client.InventarioApiClient;
 import com.projeto.inventario.client.InventarioApiClient.ApiClientException;
 import com.projeto.inventario.dto.RelatorioVendasResponse;
@@ -18,10 +27,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
-
-import com.projeto.inventario.client.InventarioApiClient;
-import com.projeto.inventario.client.InventarioApiClient.ApiClientException;
-import com.projeto.inventario.model.Produto;
 
 public class ProdutoScreen extends JFrame {
 
@@ -90,7 +95,7 @@ public class ProdutoScreen extends JFrame {
         JButton atualizarButton = new JButton("Atualizar");
         atualizarButton.addActionListener(event -> carregarProdutos());
 
-        JButton relatorioButton = new JButton("Relatorio");
+        JButton relatorioButton = new JButton("Relatório");
         relatorioButton.addActionListener(event -> mostrarRelatorioVendas());
 
         JButton sairButton = new JButton("Sair");
@@ -236,18 +241,18 @@ public class ProdutoScreen extends JFrame {
                     }
             );
         } catch (NumberFormatException exception) {
-            JOptionPane.showMessageDialog(this, "Informe uma quantidade valida.", "Dados invalidos", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Informe uma quantidade válida.", "Dados inválidos", JOptionPane.WARNING_MESSAGE);
         } catch (IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(this, exception.getMessage(), "Dados invalidos", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "Dados inválidos", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void mostrarRelatorioVendas() {
-        statusLabel.setText("Carregando relatorio de vendas...");
+        statusLabel.setText("Carregando relatório de vendas...");
         executarAsync(
                 apiClient::obterRelatorioVendas,
                 relatorio -> {
-                    statusLabel.setText("Relatorio de vendas carregado");
+                    statusLabel.setText("Relatório de vendas carregado");
                     exibirResumoRelatorio(relatorio);
                 }
         );
@@ -264,7 +269,7 @@ public class ProdutoScreen extends JFrame {
                 moedaFormat.format(relatorio.getFaturamentoTotal())
         );
 
-        JOptionPane.showMessageDialog(this, mensagem, "Relatorio de Vendas", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensagem, "Relatório de Vendas", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private Produto lerFormulario() {

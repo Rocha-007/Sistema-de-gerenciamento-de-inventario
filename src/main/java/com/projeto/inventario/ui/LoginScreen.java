@@ -29,7 +29,7 @@ public class LoginScreen extends JFrame {
     public LoginScreen() {
         this.apiClient = new InventarioApiClient();
 
-        setTitle("Inventario - Acesso");
+        setTitle("Inventário - Acesso");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(440, 330));
         setLocationRelativeTo(null);
