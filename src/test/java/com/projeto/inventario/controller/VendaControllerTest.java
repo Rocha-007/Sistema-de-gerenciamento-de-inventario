@@ -51,7 +51,6 @@ class VendaControllerTest {
     private JwtTokenUtil jwtTokenUtil;
 
     private String token;
-    private Produto produto;
 
     @BeforeEach
     void setUp() {
@@ -68,15 +67,6 @@ class VendaControllerTest {
 
         usuarioRepository.save(usuario);
         token = jwtTokenUtil.generateToken(usuario);
-
-        produto = Produto.builder()
-                .nome("Mouse gamer")
-                .descricao("Mouse USB")
-                .preco(new BigDecimal("129.90"))
-                .quantidadeEstoque(10)
-                .build();
-
-        produto = produtoRepository.save(produto);
     }
 
     @Test
@@ -87,6 +77,8 @@ class VendaControllerTest {
 
     @Test
     void deveRegistrarVendaEBaixarEstoqueQuandoTokenJwtForEnviado() throws Exception {
+        Produto produto = salvarProduto("Mouse gamer", "Mouse USB", "129.90", 10);
+
         VendaRequest request = VendaRequest.builder()
                 .produtoId(produto.getId())
                 .quantidade(3)
@@ -102,20 +94,35 @@ class VendaControllerTest {
                 .andExpect(jsonPath("$.quantidade", is(3)))
                 .andExpect(jsonPath("$.valorTotal", is(389.70)));
 
-        Produto produtoAtualizado = produtoRepository.findById(produto.getId()).orElseThrow();
-
         mockMvc.perform(get("/api/produtos/" + produto.getId())
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.quantidadeEstoque", is(7)))
-                .andExpect(jsonPath("$.id", is(produtoAtualizado.getId().intValue())));
+                .andExpect(jsonPath("$.id", is(produto.getId().intValue())));
+    }
+
+    @Test
+    void deveGerarRelatorioDeVendas() throws Exception {
+        Produto produto = salvarProduto("Teclado", "Teclado USB", "100.00", 10);
+
+        registrarVenda(produto, 2);
+        registrarVenda(produto, 1);
+
+        mockMvc.perform(get("/api/vendas/relatorio")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalVendas", is(2)))
+                .andExpect(jsonPath("$.totalItensVendidos", is(3)))
+                .andExpect(jsonPath("$.faturamentoTotal", is(300.00)));
     }
 
     @Test
     void deveRetornarConflitoQuandoEstoqueForInsuficiente() throws Exception {
+        Produto produto = salvarProduto("Monitor", "Monitor LED", "900.00", 1);
+
         VendaRequest request = VendaRequest.builder()
                 .produtoId(produto.getId())
-                .quantidade(20)
+                .quantidade(2)
                 .build();
 
         mockMvc.perform(post("/api/vendas")
@@ -124,6 +131,30 @@ class VendaControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status", is(409)))
-                .andExpect(jsonPath("$.message", is("Estoque insuficiente para o produto: Mouse gamer")));
+                .andExpect(jsonPath("$.message", is("Estoque insuficiente para o produto: Monitor")));
+    }
+
+    private Produto salvarProduto(String nome, String descricao, String preco, int quantidade) {
+        Produto produto = Produto.builder()
+                .nome(nome)
+                .descricao(descricao)
+                .preco(new BigDecimal(preco))
+                .quantidadeEstoque(quantidade)
+                .build();
+
+        return produtoRepository.save(produto);
+    }
+
+    private void registrarVenda(Produto produto, int quantidade) throws Exception {
+        VendaRequest request = VendaRequest.builder()
+                .produtoId(produto.getId())
+                .quantidade(quantidade)
+                .build();
+
+        mockMvc.perform(post("/api/vendas")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
     }
 }

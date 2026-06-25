@@ -26,8 +26,9 @@ O projeto utiliza Spring Boot e segue uma arquitetura em camadas, separando cont
 - Protecao de rotas com Spring Security
 - CRUD de produtos
 - Registro de vendas com baixa automatica no estoque
+- Relatorio de vendas com total de vendas, itens vendidos e faturamento
 - Tratamento global de erros da API
-- Testes automatizados basicos para seguranca e cadastro de produtos
+- Testes automatizados basicos para seguranca, cadastro de produtos e vendas
 
 ## Estrutura do Projeto
 
@@ -39,6 +40,7 @@ src/main/java/com/projeto/inventario
 |-- dto
 |   |-- LoginRequest.java
 |   |-- LoginResponse.java
+|   |-- RelatorioVendasResponse.java
 |   |-- VendaRequest.java
 |   `-- VendaResponse.java
 |-- exception
@@ -153,7 +155,7 @@ PUT /api/produtos/{id}
 
 DELETE /api/produtos/{id}
 
-## Endpoints de Vendas
+## Endpoints de Vendas e Relatorios
 
 Todos os endpoints abaixo exigem token JWT.
 
@@ -169,15 +171,14 @@ GET /api/vendas/{id}
 
 POST /api/vendas
 
+Ao registrar uma venda, a API valida se existe estoque suficiente para o produto. Se houver estoque, a venda e salva e a quantidade vendida e baixada automaticamente do estoque do produto.
+
 Exemplo de corpo da requisicao:
 
 {
   "produtoId": 1,
   "quantidade": 2
 }
-
-Ao registrar uma venda, a API valida se existe estoque suficiente para o produto.
-Se houver estoque, a venda e salva e a quantidade vendida e baixada automaticamente do estoque do produto.
 
 Exemplo de resposta:
 
@@ -192,6 +193,18 @@ Exemplo de resposta:
 }
 
 Caso nao exista estoque suficiente, a API retorna 409 Conflict com uma mensagem explicando o problema.
+
+### Relatorio de Vendas
+
+GET /api/vendas/relatorio
+
+Exemplo de resposta:
+
+{
+  "totalVendas": 2,
+  "totalItensVendidos": 5,
+  "faturamentoTotal": 499.50
+}
 
 ## Tratamento de Erros
 
@@ -211,8 +224,7 @@ Isso evita que a API retorne uma mensagem tecnica ou quebre a resposta esperada 
 
 ## Banco de Dados
 
-Por padrao, o projeto usa um arquivo H2 local. Os dados permanecem salvos
-mesmo depois que a aplicacao e encerrada:
+Por padrao, o projeto usa um arquivo H2 local. Os dados permanecem salvos mesmo depois que a aplicacao e encerrada:
 
 spring.datasource.url=jdbc:h2:file:./data/inventario_db
 spring.datasource.username=sa
@@ -222,8 +234,7 @@ O console do H2 pode ser acessado em:
 
 http://localhost:8080/h2-console
 
-No console, use `jdbc:h2:file:./data/inventario_db` como JDBC URL, usuario
-`sa` e deixe a senha em branco.
+No console, use `jdbc:h2:file:./data/inventario_db` como JDBC URL, usuario `sa` e deixe a senha em branco.
 
 Tambem existe configuracao comentada para PostgreSQL no arquivo application.properties.
 
@@ -256,8 +267,7 @@ cd Sistema-de-gerenciamento-de-inventario
 
 mvn spring-boot:run
 
-Esse comando inicia a API e abre a tela de login Swing. Em ambientes sem
-interface grafica, somente a API sera iniciada.
+Esse comando inicia a API e abre a tela de login Swing. Em ambientes sem interface grafica, somente a API sera iniciada.
 
 4. A API fica disponivel em:
 
@@ -265,13 +275,9 @@ http://localhost:8080
 
 ## Como Executar a Interface Swing
 
-Normalmente a interface ja e aberta pelo comando `mvn spring-boot:run`.
-Tambem e possivel executar `LoginScreen` diretamente pela IDE, desde que o
-backend esteja rodando em `http://localhost:8080`.
+Normalmente a interface ja e aberta pelo comando `mvn spring-boot:run`. Tambem e possivel executar `LoginScreen` diretamente pela IDE, desde que o backend esteja rodando em `http://localhost:8080`.
 
-A interface permite criar uma conta, entrar, listar, cadastrar, atualizar e
-excluir produtos. Todas as operacoes sao enviadas para a API REST e persistidas
-no banco H2; a interface nao mantem registros simulados.
+A interface permite criar uma conta, entrar, listar, cadastrar, atualizar e excluir produtos, registrar vendas de um produto selecionado e consultar o relatorio de vendas. Todas as operacoes sao enviadas para a API REST e persistidas no banco H2; a interface nao mantem registros simulados.
 
 ## Como Executar os Testes
 
@@ -289,6 +295,7 @@ Atualmente os testes validam:
 - Bloqueio dos endpoints de vendas sem token JWT
 - Registro de venda com token JWT valido
 - Baixa automatica do estoque apos uma venda
+- Relatorio de vendas com quantidade vendida e faturamento
 - Retorno 409 Conflict quando o estoque for insuficiente
 
 ## Atualizacoes Recentes
@@ -303,10 +310,12 @@ Foram adicionadas as seguintes melhorias ao projeto:
 - Resposta padronizada para erro 404 Not Found
 - Testes basicos com JUnit e MockMvc
 - API de vendas protegida por JWT
+- Endpoints de vendas e relatorio
 - Controle de estoque com baixa automatica ao registrar venda
 - Tratamento de erro para estoque insuficiente
+- Integracao da tela Swing com registro de vendas e resumo de relatorio
+- Testes de integracao para fluxo de venda e baixa no estoque
 
 ## Autores
 
 Projeto desenvolvido em grupo para trabalho academico.
-

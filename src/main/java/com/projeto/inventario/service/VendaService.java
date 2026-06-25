@@ -1,5 +1,6 @@
 package com.projeto.inventario.service;
 
+import com.projeto.inventario.dto.RelatorioVendasResponse;
 import com.projeto.inventario.dto.VendaRequest;
 import com.projeto.inventario.dto.VendaResponse;
 import com.projeto.inventario.exception.ResourceNotFoundException;
@@ -38,6 +39,19 @@ public class VendaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Venda nao encontrada com ID: " + id));
 
         return toResponse(venda);
+    }
+
+    @Transactional(readOnly = true)
+    public RelatorioVendasResponse gerarRelatorio() {
+        List<Venda> vendas = vendaRepository.findAll();
+        int totalItens = vendas.stream()
+                .mapToInt(Venda::getQuantidade)
+                .sum();
+        BigDecimal faturamento = vendas.stream()
+                .map(Venda::getValorTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new RelatorioVendasResponse(vendas.size(), totalItens, faturamento);
     }
 
     @Transactional
